@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Les Bleus - France World Cup Squad</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+  <!-- GSAP -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== INTRO OVERLAY ===== -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-crest" id="introCrest">
+      <img
+        src="fff-emblem.svg"
+        alt="French Football Federation crest"
+        id="crestImg"
+      >
+      <h1 class="intro-title" id="introTitle">
+        <span class="title-text" id="introTitleText">Les Bleus</span>
+        <span class="title-underline" id="introTitleUnderline" aria-hidden="true"></span>
+      </h1>
+      <p class="intro-subtitle" id="introSubtitle">France National Team - World Cup 2026</p>
+    </div>
+  </div>
+
+  <!-- ===== MAIN SITE ===== -->
+  <div class="site-wrapper" id="siteWrapper">
+
+    <!-- Top bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <img
+          src="fff-emblem.svg"
+          alt="FFF crest"
+          class="top-bar-crest"
+        >
+        <div>
+          <span class="top-bar-team">France</span>
+          <span class="top-bar-detail">4-3-3 Formation</span>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <span class="top-bar-label">Squad Rating</span>
+        <span class="top-bar-rating" id="squadRating">--</span>
+      </div>
+    </header>
+
+    <!-- Hero emblem -->
+    <div class="hero-emblem" id="heroEmblem" aria-hidden="true">
+      <img
+        src="fff-emblem.svg"
+        alt="French Football Federation emblem"
+      >
+    </div>
+
+    <!-- Pitch area -->
+    <main class="pitch-container" id="pitchContainer" role="main" aria-label="Full football pitch with player cards in 4-3-3 formation">
+      <div class="pitch" id="pitch">
+        <!-- Field markings -->
+        <div class="pitch-goal top"></div>
+        <div class="pitch-goal bottom"></div>
+
+        <div class="pitch-penalty-box top"></div>
+        <div class="pitch-penalty-box bottom"></div>
+
+        <div class="pitch-goal-box top"></div>
+        <div class="pitch-goal-box bottom"></div>
+
+        <div class="pitch-penalty-arc top"></div>
+        <div class="pitch-penalty-arc bottom"></div>
+
+        <div class="pitch-penalty-spot top"></div>
+        <div class="pitch-penalty-spot bottom"></div>
+
+        <div class="pitch-halfway"></div>
+        <div class="pitch-center-circle"></div>
+        <div class="pitch-center-spot"></div>
+
+        <div class="pitch-corner tl"></div>
+        <div class="pitch-corner tr"></div>
+        <div class="pitch-corner bl"></div>
+        <div class="pitch-corner br"></div>
+
+        <!-- Player slots get injected here by script.js -->
+        <div class="pitch-slots" id="pitchSlots" aria-label="Players in 4-3-3 formation"></div>
+      </div>
+    </main>
+
+    <!-- Substitutes bar -->
+    <section class="subs-bar" id="subsBar" aria-label="Substitute players">
+      <h2 class="subs-title">Substitutes</h2>
+      <div class="subs-list" id="subsList"></div>
+    </section>
+
+  </div>
+
+  <!-- ===== PLAYER DETAIL MODAL ===== -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="Player details">
+    <div class="modal-content" id="modalContent">
+      <button class="modal-close" id="modalClose" aria-label="Close player details">&times;</button>
+
+      <div class="modal-layout">
+        <!-- Left: Card -->
+        <div class="modal-card" id="modalCard">
+          <div class="modal-card-rating" id="modalRating"></div>
+          <div class="modal-card-position" id="modalPosition"></div>
+          <div class="modal-card-avatar">
+            <img id="modalAvatar" src="" alt="Player avatar">
+          </div>
+          <div class="modal-card-name" id="modalName"></div>
+          <div class="modal-card-club" id="modalClub"></div>
+          <div class="modal-card-stats" id="modalCardStats"></div>
+        </div>
+
+        <!-- Right: Details -->
+        <div class="modal-details">
+          <h2 class="modal-fullname" id="modalFullName"></h2>
+          <div class="modal-meta" id="modalMeta"></div>
+          <p class="modal-bio" id="modalBio"></p>
+
+          <div class="modal-chart-title">Attribute Radar</div>
+          <div class="modal-chart-wrapper">
+            <canvas id="modalRadarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Script -->
+  <script src="script.js"></script>
+
+</body>
+</html>
