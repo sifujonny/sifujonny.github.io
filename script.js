@@ -40,9 +40,7 @@ async function loadPlayerData() {
    ------------------------------------------------------- */
 
 function playIntroAnimation(onComplete) {
-  const tl = gsap.timeline({
-    onComplete: onComplete
-  });
+  const tl = gsap.timeline({ onComplete });
 
   // Crest scales up from small (like coming from background)
   tl.fromTo("#crestImg",
@@ -65,12 +63,11 @@ function playIntroAnimation(onComplete) {
     transformOrigin: "50% 50%"
   }, "-=0.15");
 
-  // Gold glint sweeps across the title text once (CSS keyframe via class toggle)
+  // Gold glint sweeps across the title text once
   tl.add(() => {
     const titleText = document.getElementById("introTitleText");
     if (!titleText) return;
-    titleText.classList.remove("title-glint"); // reset if re-played
-    // Force reflow so the animation restarts cleanly
+    titleText.classList.remove("title-glint");
     void titleText.offsetWidth;
     titleText.classList.add("title-glint");
   }, "-=0.2");
@@ -82,20 +79,57 @@ function playIntroAnimation(onComplete) {
     "-=0.05"
   );
 
-  // Hold, then fade out overlay
-  tl.to("#introOverlay", {
+  // Hold a beat so the intro can be read
+  tl.to({}, { duration: 0.7 });
+
+  // Reveal the site behind the overlay so the hero emblem slot is laid out
+  tl.set("#siteWrapper", { opacity: 1 });
+
+  // Fade the title and subtitle out, leaving only the crest on screen
+  tl.to(["#introTitle", "#introSubtitle"], {
     opacity: 0,
-    duration: 0.6,
-    delay: 0.8,
-    ease: "power2.inOut"
+    y: -10,
+    duration: 0.45,
+    ease: "power2.in"
   });
 
-  // Show the site
-  tl.to("#siteWrapper", {
-    opacity: 1,
-    duration: 0.5,
-    ease: "power2.out"
-  }, "-=0.3");
+  // FLIP-morph the intro crest into the hero emblem's position/size
+  tl.add(() => {
+    const introImg = document.getElementById("crestImg");
+    const heroImg  = document.querySelector("#heroEmblem img");
+    if (!introImg || !heroImg) return;
+
+    const from = introImg.getBoundingClientRect();
+    const to   = heroImg.getBoundingClientRect();
+
+    const dx = (to.left + to.width  / 2) - (from.left + from.width  / 2);
+    const dy = (to.top  + to.height / 2) - (from.top  + from.height / 2);
+    const scale = to.width / from.width;
+
+    gsap.to(introImg, {
+      x: dx,
+      y: dy,
+      scale,
+      duration: 0.9,
+      ease: "power3.inOut",
+      onComplete: () => {
+        // Hand off to the real hero emblem and drop the overlay
+        gsap.set("#heroEmblem", { opacity: 1 });
+        gsap.to("#introOverlay", {
+          opacity: 0,
+          duration: 0.35,
+          ease: "power2.out",
+          onComplete: () => {
+            const overlay = document.getElementById("introOverlay");
+            if (overlay) overlay.style.display = "none";
+          }
+        });
+      }
+    });
+  });
+
+  // Give the morph + handoff time to finish before continuing the timeline
+  tl.to({}, { duration: 1.3 });
 
   return tl;
 }
@@ -193,6 +227,7 @@ function renderPitch(players) {
 
       const slot = document.createElement("div");
       slot.className = "pitch-slot";
+      slot.dataset.row = row;
       slot.style.top  = `${top}%`;
       slot.style.left = `${left}%`;
       slot.appendChild(createMiniCard(player));
@@ -240,39 +275,44 @@ function renderSubs(substitutes) {
    ------------------------------------------------------- */
 
 function animateCardsIn() {
-  // Fade in the hero emblem on the main page
-  gsap.fromTo("#heroEmblem",
-    { opacity: 0, y: -10 },
-    { opacity: 1, y: 0, duration: 1.2, ease: "power2.out" }
+  const tl = gsap.timeline();
+
+  // Pitch fades in first
+  tl.fromTo("#pitchContainer",
+    { opacity: 0 },
+    { opacity: 1, duration: 0.7, ease: "power2.out" }
   );
 
-  // Animate starting XI cards
-  gsap.fromTo(".player-card-mini",
-    { opacity: 0, y: 30, scale: 0.8 },
-    {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      duration: 0.5,
-      ease: "back.out(1.4)",
-      stagger: {
-        each: 0.1,
-        from: "end" // GK first, forwards last (bottom to top feel)
-      }
-    }
-  );
+  // Reveal cards in tactical order: forwards, midfield, defense, goalkeeper.
+  // (data-row 1 = forwards, 2 = midfield, 3 = defense, 4 = GK)
+  const rowOrder = [1, 2, 3, 4];
+  rowOrder.forEach((row, i) => {
+    const sel = `.pitch-slot[data-row="${row}"] .player-card-mini`;
+    tl.fromTo(sel,
+      { opacity: 0, y: 30, scale: 0.8 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.45,
+        ease: "back.out(1.4)",
+        stagger: 0.08
+      },
+      i === 0 ? "-=0.2" : ">-0.05"
+    );
+  });
 
-  // Animate subs after starting XI
-  gsap.fromTo(".sub-card",
+  // Subs slide in last
+  tl.fromTo(".sub-card",
     { opacity: 0, x: -20 },
     {
       opacity: 1,
       x: 0,
       duration: 0.4,
       ease: "power2.out",
-      stagger: 0.1,
-      delay: 1.2
-    }
+      stagger: 0.08
+    },
+    ">0.1"
   );
 }
 
@@ -467,6 +507,11 @@ async function init() {
   // Render players on pitch
   renderPitch(data.players);
   renderSubs(data.substitutes);
+
+  // Hide pitch + subs until the intro hands off; they fade in afterward
+  gsap.set("#pitchContainer", { opacity: 0 });
+  gsap.set(".player-card-mini", { opacity: 0 });
+  gsap.set(".sub-card", { opacity: 0 });
 
   // Calculate and display squad rating
   const allPlayers = [...data.players, ...data.substitutes];
